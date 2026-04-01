@@ -1,0 +1,62 @@
+#----------------------------------------------------
+# Cadence Virtuoso / Spectre Simulation Files
+#----------------------------------------------------
+
+# Simulation result directories
+*/psf/
+*/simdata/
+*/spectre/schematic/psf/
+*/spectre/*/psf/
+*/spectre/schematic/netlist/
+*/spectre/schematic/ahdlSimDB/
+*/spectre/schematic/psfdata/
+
+# ADE-L / ADE-XL temporary results
+*/psfDC/
+*/psfDCXL/
+*/wavescan/
+*/skill/
+*/ocean.*
+*/runObj.*
+*/cellViewLog
+*/.artist*
+*/.ade*
+*/.ciw*
+*/.log.*
+*.log
+*.history
+*.results
+*.trn*
+*.icdata
+*.icd
+*.map
+
+#----------------------------------------------------
+# Lock / cache / backup files
+#----------------------------------------------------
+
+# Cadence lock files (prevent others from opening)
+*.cdslck
+*.cph
+*.cls
+*.lock
+*.log.*
+*.lck
+
+# Auto-save / backup versions
+*~ 
+*.bak
+*.tmp
+*.swp
+*.swl
+
+#----------------------------------------------------
+# OS / Editor / Miscellaneous
+#----------------------------------------------------
+.DS_Store
+Thumbs.db
+*.pyc
+__pycache__/
+.env
+.idea/
+.vscode/
