@@ -1,0 +1,3 @@
+projectDir = '"~/simulation"
+designInfo = '("SRAM_PVT" "array_verification" "schematic" "spectre")
+descriptionText = "None"
