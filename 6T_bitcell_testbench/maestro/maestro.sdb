@@ -8,6 +8,9 @@
 					<var>temperature
 						<value>27</value>
 					</var>
+					<var>VDD
+						<value>1</value>
+					</var>
 				</vars>
 				<models>
 					<model enabled="1">gpdk045.scs
@@ -18,123 +21,39 @@
 					</model>
 				</models>
 			</corner>
-			<corner enabled="0">C1_tt
+			<corner enabled="0">C1_ss
 				<vars>
 					<var>temperature
 						<value>85</value>
 					</var>
+					<var>VDD
+						<value>1</value>
+					</var>
 				</vars>
 				<models>
-					<model enabled="1">gpdk045.scs
+					<model enabled="0">gpdk045.scs
 						<modeltest>All</modeltest>
 						<modelblock>Global</modelblock>
 						<modelfile>/lcars/software/linux/x86_64/ic-design/design_kits/gpdk045_v_6_0/gpdk045/../models/spectre/gpdk045.scs</modelfile>
-						<modelsection>"tt"</modelsection>
+						<modelsection>"ss"</modelsection>
 					</model>
 				</models>
 			</corner>
 			<corner enabled="0">C2_tt
 				<vars>
 					<var>temperature
-						<value>0</value>
-					</var>
-				</vars>
-				<models>
-					<model enabled="1">gpdk045.scs
-						<modeltest>All</modeltest>
-						<modelblock>Global</modelblock>
-						<modelfile>/lcars/software/linux/x86_64/ic-design/design_kits/gpdk045_v_6_0/gpdk045/../models/spectre/gpdk045.scs</modelfile>
-						<modelsection>"tt"</modelsection>
-					</model>
-				</models>
-			</corner>
-			<corner enabled="0">C3_ff
-				<vars>
-					<var>temperature
-						<value>27</value>
-					</var>
-				</vars>
-				<models>
-					<model enabled="1">gpdk045.scs
-						<modeltest>All</modeltest>
-						<modelblock>Global</modelblock>
-						<modelfile>/lcars/software/linux/x86_64/ic-design/design_kits/gpdk045_v_6_0/gpdk045/../models/spectre/gpdk045.scs</modelfile>
-						<modelsection>"ff"</modelsection>
-					</model>
-				</models>
-			</corner>
-			<corner enabled="0">C4_ff
-				<vars>
-					<var>temperature
 						<value>85</value>
 					</var>
+					<var>VDD
+						<value>1.2</value>
+					</var>
 				</vars>
 				<models>
-					<model enabled="1">gpdk045.scs
+					<model enabled="0">gpdk045.scs
 						<modeltest>All</modeltest>
 						<modelblock>Global</modelblock>
 						<modelfile>/lcars/software/linux/x86_64/ic-design/design_kits/gpdk045_v_6_0/gpdk045/../models/spectre/gpdk045.scs</modelfile>
 						<modelsection>"ff"</modelsection>
-					</model>
-				</models>
-			</corner>
-			<corner enabled="0">C5_ff
-				<vars>
-					<var>temperature
-						<value>0</value>
-					</var>
-				</vars>
-				<models>
-					<model enabled="1">gpdk045.scs
-						<modeltest>All</modeltest>
-						<modelblock>Global</modelblock>
-						<modelfile>/lcars/software/linux/x86_64/ic-design/design_kits/gpdk045_v_6_0/gpdk045/../models/spectre/gpdk045.scs</modelfile>
-						<modelsection>"ff"</modelsection>
-					</model>
-				</models>
-			</corner>
-			<corner enabled="0">C6_ss
-				<vars>
-					<var>temperature
-						<value>27</value>
-					</var>
-				</vars>
-				<models>
-					<model enabled="1">gpdk045.scs
-						<modeltest>All</modeltest>
-						<modelblock>Global</modelblock>
-						<modelfile>/lcars/software/linux/x86_64/ic-design/design_kits/gpdk045_v_6_0/gpdk045/../models/spectre/gpdk045.scs</modelfile>
-						<modelsection>"ss"</modelsection>
-					</model>
-				</models>
-			</corner>
-			<corner enabled="0">C7_ss
-				<vars>
-					<var>temperature
-						<value>85</value>
-					</var>
-				</vars>
-				<models>
-					<model enabled="1">gpdk045.scs
-						<modeltest>All</modeltest>
-						<modelblock>Global</modelblock>
-						<modelfile>/lcars/software/linux/x86_64/ic-design/design_kits/gpdk045_v_6_0/gpdk045/../models/spectre/gpdk045.scs</modelfile>
-						<modelsection>"ss"</modelsection>
-					</model>
-				</models>
-			</corner>
-			<corner enabled="0">C8_ss
-				<vars>
-					<var>temperature
-						<value>0</value>
-					</var>
-				</vars>
-				<models>
-					<model enabled="1">gpdk045.scs
-						<modeltest>All</modeltest>
-						<modelblock>Global</modelblock>
-						<modelfile>/lcars/software/linux/x86_64/ic-design/design_kits/gpdk045_v_6_0/gpdk045/../models/spectre/gpdk045.scs</modelfile>
-						<modelsection>"ss"</modelsection>
 					</model>
 				</models>
 			</corner>
@@ -152,24 +71,28 @@
 				<value>1.0</value>
 				<dependentTests>
 					<dependentTest omitted="0">SRAM_PVT:6T_bitcell_testbench:1</dependentTest>
+					<dependentTest omitted="0">SRAM_PVT:6T_bitcell_testbench:2</dependentTest>
 				</dependentTests>
 			</var>
 			<var>WPD
 				<value>180n</value>
 				<dependentTests>
 					<dependentTest omitted="0">SRAM_PVT:6T_bitcell_testbench:1</dependentTest>
+					<dependentTest omitted="0">SRAM_PVT:6T_bitcell_testbench:2</dependentTest>
 				</dependentTests>
 			</var>
 			<var>WPG
 				<value>120n</value>
 				<dependentTests>
 					<dependentTest omitted="0">SRAM_PVT:6T_bitcell_testbench:1</dependentTest>
+					<dependentTest omitted="0">SRAM_PVT:6T_bitcell_testbench:2</dependentTest>
 				</dependentTests>
 			</var>
 			<var>WPU
 				<value>120n</value>
 				<dependentTests>
 					<dependentTest omitted="0">SRAM_PVT:6T_bitcell_testbench:1</dependentTest>
+					<dependentTest omitted="0">SRAM_PVT:6T_bitcell_testbench:2</dependentTest>
 				</dependentTests>
 			</var>
 		</vars>
@@ -255,9 +178,61 @@
 					</output>
 				</outputs>
 			</test>
+			<test enabled="1">SRAM_PVT:6T_bitcell_testbench:2
+				<tool>ADE</tool>
+				<tooloptions>
+					<option>cell
+						<value>6T_bitcell_testbench</value>
+					</option>
+					<option>lib
+						<value>SRAM_PVT</value>
+					</option>
+					<option>sim
+						<value>spectre</value>
+					</option>
+					<option>view
+						<value>schematic</value>
+					</option>
+					<option>path
+						<value>$AXL_SETUPDB_DIR</value>
+					</option>
+					<option>state
+						<value>active</value>
+					</option>
+				</tooloptions>
+				<vars>
+					<var>VDD
+						<value>1</value>
+					</var>
+					<var>WPD
+						<value>180n</value>
+					</var>
+					<var>WPG
+						<value>120n</value>
+					</var>
+					<var>WPU
+						<value>120n</value>
+					</var>
+				</vars>
+				<origoptions>
+					<option>cell
+						<value>6T_bitcell_testbench</value>
+					</option>
+					<option>lib
+						<value>SRAM_PVT</value>
+					</option>
+					<option>sim
+						<value>spectre</value>
+					</option>
+					<option>view
+						<value>schematic</value>
+					</option>
+				</origoptions>
+			</test>
 		</tests>
 		<checksasserts netlist="0">
 			<test netlist="0" netlistscope="all">SRAM_PVT:6T_bitcell_testbench:1</test>
+			<test netlist="0" netlistscope="all">SRAM_PVT:6T_bitcell_testbench:2</test>
 		</checksasserts>
 		<plottingoptions>
 			<plottingoption>waveformtemplate
@@ -291,6 +266,11 @@
 			<incrementalSimulation>0</incrementalSimulation>
 		</incrementalsimulationoptions>
 		<overwritehistoryname>Interactive.0</overwritehistoryname>
+		<incrementalsimsetup>
+			<useincremental>0</useincremental>
+			<reusenetlist>0</reusenetlist>
+			<copyreferenceresults>1</copyreferenceresults>
+		</incrementalsimsetup>
 	</active>
 	<history>History
 		<historyentry assemblerOrExplorer="assembler" roOrView="view" runningOrFinished="finished">Interactive.0
@@ -2145,6 +2125,584 @@
 			<gendatasheetplotsonsimulation>1</gendatasheetplotsonsimulation>
 			<runlog>/lcars/home/t/tjammula/cadenceGPDK/SRAM_PVT/6T_bitcell_testbench/maestro/results/maestro/Interactive.5.log</runlog>
 			<runlogfile>$AXL_SETUPDB_DIR/results/maestro/Interactive.5.log</runlogfile>
+			<schematicpoint></schematicpoint>
+			<test>all</test>
+		</historyentry>
+		<historyentry assemblerOrExplorer="assembler" roOrView="view" runningOrFinished="finished">Interactive.6
+			<checkpoint>
+				<corners>
+					<corner enabled="0">_default</corner>
+					<corner enabled="1">C0_tt
+						<vars>
+							<var>temperature
+								<value>27</value>
+							</var>
+						</vars>
+						<models>
+							<model enabled="1">gpdk045.scs
+								<modeltest>All</modeltest>
+								<modelblock>Global</modelblock>
+								<modelfile>/lcars/software/linux/x86_64/ic-design/design_kits/gpdk045_v_6_0/gpdk045/../models/spectre/gpdk045.scs</modelfile>
+								<modelsection>"tt"</modelsection>
+							</model>
+						</models>
+					</corner>
+					<corner enabled="0">C1_tt
+						<vars>
+							<var>temperature
+								<value>85</value>
+							</var>
+						</vars>
+						<models>
+							<model enabled="1">gpdk045.scs
+								<modeltest>All</modeltest>
+								<modelblock>Global</modelblock>
+								<modelfile>/lcars/software/linux/x86_64/ic-design/design_kits/gpdk045_v_6_0/gpdk045/../models/spectre/gpdk045.scs</modelfile>
+								<modelsection>"tt"</modelsection>
+							</model>
+						</models>
+					</corner>
+					<corner enabled="0">C2_tt
+						<vars>
+							<var>temperature
+								<value>0</value>
+							</var>
+						</vars>
+						<models>
+							<model enabled="1">gpdk045.scs
+								<modeltest>All</modeltest>
+								<modelblock>Global</modelblock>
+								<modelfile>/lcars/software/linux/x86_64/ic-design/design_kits/gpdk045_v_6_0/gpdk045/../models/spectre/gpdk045.scs</modelfile>
+								<modelsection>"tt"</modelsection>
+							</model>
+						</models>
+					</corner>
+					<corner enabled="0">C3_ff
+						<vars>
+							<var>temperature
+								<value>27</value>
+							</var>
+						</vars>
+						<models>
+							<model enabled="1">gpdk045.scs
+								<modeltest>All</modeltest>
+								<modelblock>Global</modelblock>
+								<modelfile>/lcars/software/linux/x86_64/ic-design/design_kits/gpdk045_v_6_0/gpdk045/../models/spectre/gpdk045.scs</modelfile>
+								<modelsection>"ff"</modelsection>
+							</model>
+						</models>
+					</corner>
+					<corner enabled="0">C4_ff
+						<vars>
+							<var>temperature
+								<value>85</value>
+							</var>
+						</vars>
+						<models>
+							<model enabled="1">gpdk045.scs
+								<modeltest>All</modeltest>
+								<modelblock>Global</modelblock>
+								<modelfile>/lcars/software/linux/x86_64/ic-design/design_kits/gpdk045_v_6_0/gpdk045/../models/spectre/gpdk045.scs</modelfile>
+								<modelsection>"ff"</modelsection>
+							</model>
+						</models>
+					</corner>
+					<corner enabled="0">C5_ff
+						<vars>
+							<var>temperature
+								<value>0</value>
+							</var>
+						</vars>
+						<models>
+							<model enabled="1">gpdk045.scs
+								<modeltest>All</modeltest>
+								<modelblock>Global</modelblock>
+								<modelfile>/lcars/software/linux/x86_64/ic-design/design_kits/gpdk045_v_6_0/gpdk045/../models/spectre/gpdk045.scs</modelfile>
+								<modelsection>"ff"</modelsection>
+							</model>
+						</models>
+					</corner>
+					<corner enabled="0">C6_ss
+						<vars>
+							<var>temperature
+								<value>27</value>
+							</var>
+						</vars>
+						<models>
+							<model enabled="1">gpdk045.scs
+								<modeltest>All</modeltest>
+								<modelblock>Global</modelblock>
+								<modelfile>/lcars/software/linux/x86_64/ic-design/design_kits/gpdk045_v_6_0/gpdk045/../models/spectre/gpdk045.scs</modelfile>
+								<modelsection>"ss"</modelsection>
+							</model>
+						</models>
+					</corner>
+					<corner enabled="0">C7_ss
+						<vars>
+							<var>temperature
+								<value>85</value>
+							</var>
+						</vars>
+						<models>
+							<model enabled="1">gpdk045.scs
+								<modeltest>All</modeltest>
+								<modelblock>Global</modelblock>
+								<modelfile>/lcars/software/linux/x86_64/ic-design/design_kits/gpdk045_v_6_0/gpdk045/../models/spectre/gpdk045.scs</modelfile>
+								<modelsection>"ss"</modelsection>
+							</model>
+						</models>
+					</corner>
+					<corner enabled="0">C8_ss
+						<vars>
+							<var>temperature
+								<value>0</value>
+							</var>
+						</vars>
+						<models>
+							<model enabled="1">gpdk045.scs
+								<modeltest>All</modeltest>
+								<modelblock>Global</modelblock>
+								<modelfile>/lcars/software/linux/x86_64/ic-design/design_kits/gpdk045_v_6_0/gpdk045/../models/spectre/gpdk045.scs</modelfile>
+								<modelsection>"ss"</modelsection>
+							</model>
+						</models>
+					</corner>
+				</corners>
+				<extensions>
+					<extension>Parasitics
+						<callback>_parSetupDBExtensionCB</callback>
+						<iconvalue></iconvalue>
+						<icontype></icontype>
+					</extension>
+				</extensions>
+				<currentmode>Single Run, Sweeps and Corners</currentmode>
+				<vars>
+					<var>VDD
+						<value>1.0</value>
+						<dependentTests>
+							<dependentTest omitted="0">SRAM_PVT:6T_bitcell_testbench:1</dependentTest>
+						</dependentTests>
+					</var>
+					<var>WPD
+						<value>180n</value>
+						<dependentTests>
+							<dependentTest omitted="0">SRAM_PVT:6T_bitcell_testbench:1</dependentTest>
+						</dependentTests>
+					</var>
+					<var>WPG
+						<value>120n</value>
+						<dependentTests>
+							<dependentTest omitted="0">SRAM_PVT:6T_bitcell_testbench:1</dependentTest>
+						</dependentTests>
+					</var>
+					<var>WPU
+						<value>120n</value>
+						<dependentTests>
+							<dependentTest omitted="0">SRAM_PVT:6T_bitcell_testbench:1</dependentTest>
+						</dependentTests>
+					</var>
+				</vars>
+				<overwritehistory>0</overwritehistory>
+				<tests>
+					<test enabled="1">SRAM_PVT:6T_bitcell_testbench:1
+						<tool>ADE</tool>
+						<tooloptions>
+							<option>cell
+								<value>6T_bitcell_testbench</value>
+							</option>
+							<option>lib
+								<value>SRAM_PVT</value>
+							</option>
+							<option>sim
+								<value>spectre</value>
+							</option>
+							<option>view
+								<value>schematic</value>
+							</option>
+							<option>path
+								<value>$AXL_SETUPDB_DIR/test_states</value>
+							</option>
+							<option>state
+								<value>Interactive.6</value>
+							</option>
+						</tooloptions>
+						<vars>
+							<var>VDD
+								<value></value>
+							</var>
+							<var>WPD
+								<value></value>
+							</var>
+							<var>WPG
+								<value></value>
+							</var>
+							<var>WPU
+								<value></value>
+							</var>
+						</vars>
+						<origoptions>
+							<option>cell
+								<value>6T_bitcell_testbench</value>
+							</option>
+							<option>lib
+								<value>SRAM_PVT</value>
+							</option>
+							<option>sim
+								<value>spectre</value>
+							</option>
+							<option>view
+								<value>schematic</value>
+							</option>
+						</origoptions>
+						<outputs>
+							<output>"/V(\"\\Q\")"
+								<evalType>point</evalType>
+							</output>
+							<output>"/V(\"/Q\")"
+								<evalType>point</evalType>
+							</output>
+							<output>"/"
+								<evalType>point</evalType>
+							</output>
+							<output>/V("/QB")
+								<evalType>point</evalType>
+							</output>
+							<output>/
+								<evalType>point</evalType>
+							</output>
+							<output>/Q
+								<evalType>point</evalType>
+							</output>
+							<output>/QB
+								<evalType>point</evalType>
+							</output>
+							<output>/BL
+								<evalType>point</evalType>
+							</output>
+							<output>/BLB
+								<evalType>point</evalType>
+							</output>
+						</outputs>
+					</test>
+				</tests>
+				<checksasserts netlist="0">
+					<test netlist="0" netlistscope="all">SRAM_PVT:6T_bitcell_testbench:1</test>
+				</checksasserts>
+				<plottingoptions>
+					<plottingoption>waveformtemplate
+						<value></value>
+					</plottingoption>
+					<plottingoption>plottingmode
+						<value>Replace</value>
+					</plottingoption>
+					<plottingoption>plottype
+						<value>None</value>
+					</plottingoption>
+					<plottingoption>usewaveformtemplate
+						<value>no</value>
+					</plottingoption>
+					<plottingoption>useMaestroPlottingTemplate
+						<value>no</value>
+					</plottingoption>
+					<plottingoption>allplottingtemplates
+						<value></value>
+					</plottingoption>
+					<plottingoption>defaultplottingtemplate
+						<value></value>
+					</plottingoption>
+				</plottingoptions>
+				<exploreroptions>
+					<exploreroption>waveformtemplate
+						<value>(None)</value>
+					</exploreroption>
+				</exploreroptions>
+				<incrementalsimulationoptions>
+					<incrementalSimulation>0</incrementalSimulation>
+				</incrementalsimulationoptions>
+				<overwritehistoryname>Interactive.0</overwritehistoryname>
+				<sortVariableValues>0</sortVariableValues>
+			</checkpoint>
+			<timestamp>Apr 20 17:40:51 2026</timestamp>
+			<resultsname>/lcars/home/t/tjammula/cadenceGPDK/SRAM_PVT/6T_bitcell_testbench/maestro/results/maestro/Interactive.6.rdb</resultsname>
+			<simresults>$AXL_SETUPDB_DIR/results/maestro/Interactive.6.rdb</simresults>
+			<rawdatadelstrategy>SaveAll
+				<simdatasavemode>All</simdatasavemode>
+			</rawdatadelstrategy>
+			<netlistdelstrategy>SaveAll</netlistdelstrategy>
+			<uselocalpsfdir>false</uselocalpsfdir>
+			<localpsfdir>/tmp/big20.seas.upenn.edu_tjammula_174051568</localpsfdir>
+			<psfdir>/lcars/home/t/tjammula/simulation/SRAM_PVT/6T_bitcell_testbench/maestro/results/maestro/Interactive.6</psfdir>
+			<simdir>$AXL_PROJECT_DIR/SRAM_PVT/6T_bitcell_testbench/maestro/results/maestro/Interactive.6</simdir>
+			<gendatasheetplotsonsimulation>1</gendatasheetplotsonsimulation>
+			<runlog>/lcars/home/t/tjammula/cadenceGPDK/SRAM_PVT/6T_bitcell_testbench/maestro/results/maestro/Interactive.6.log</runlog>
+			<runlogfile>$AXL_SETUPDB_DIR/results/maestro/Interactive.6.log</runlogfile>
+			<schematicpoint></schematicpoint>
+			<test>all</test>
+		</historyentry>
+		<historyentry assemblerOrExplorer="explorer" roOrView="view" runningOrFinished="finished">ExplorerRun.0
+			<checkpoint>
+				<corners>
+					<corner enabled="0">_default</corner>
+					<corner enabled="1">C0_tt
+						<vars>
+							<var>temperature
+								<value>27</value>
+							</var>
+							<var>VDD
+								<value>1</value>
+							</var>
+						</vars>
+						<models>
+							<model enabled="1">gpdk045.scs
+								<modeltest>All</modeltest>
+								<modelblock>Global</modelblock>
+								<modelfile>/lcars/software/linux/x86_64/ic-design/design_kits/gpdk045_v_6_0/gpdk045/../models/spectre/gpdk045.scs</modelfile>
+								<modelsection>"tt"</modelsection>
+							</model>
+						</models>
+					</corner>
+					<corner enabled="0">C1_ss
+						<vars>
+							<var>temperature
+								<value>85</value>
+							</var>
+							<var>VDD
+								<value>1</value>
+							</var>
+						</vars>
+						<models>
+							<model enabled="0">gpdk045.scs
+								<modeltest>All</modeltest>
+								<modelblock>Global</modelblock>
+								<modelfile>/lcars/software/linux/x86_64/ic-design/design_kits/gpdk045_v_6_0/gpdk045/../models/spectre/gpdk045.scs</modelfile>
+								<modelsection>"ss"</modelsection>
+							</model>
+						</models>
+					</corner>
+					<corner enabled="0">C2_tt
+						<vars>
+							<var>temperature
+								<value>85</value>
+							</var>
+							<var>VDD
+								<value>1.2</value>
+							</var>
+						</vars>
+						<models>
+							<model enabled="0">gpdk045.scs
+								<modeltest>All</modeltest>
+								<modelblock>Global</modelblock>
+								<modelfile>/lcars/software/linux/x86_64/ic-design/design_kits/gpdk045_v_6_0/gpdk045/../models/spectre/gpdk045.scs</modelfile>
+								<modelsection>"ff"</modelsection>
+							</model>
+						</models>
+					</corner>
+				</corners>
+				<extensions>
+					<extension>Parasitics
+						<callback>_parSetupDBExtensionCB</callback>
+						<iconvalue></iconvalue>
+						<icontype></icontype>
+					</extension>
+				</extensions>
+				<currentmode>Single Run, Sweeps and Corners</currentmode>
+				<vars>
+					<var>VDD
+						<value>1.0</value>
+						<dependentTests>
+							<dependentTest omitted="0">SRAM_PVT:6T_bitcell_testbench:1</dependentTest>
+							<dependentTest omitted="0">SRAM_PVT:6T_bitcell_testbench:2</dependentTest>
+						</dependentTests>
+					</var>
+					<var>WPD
+						<value>180n</value>
+						<dependentTests>
+							<dependentTest omitted="0">SRAM_PVT:6T_bitcell_testbench:1</dependentTest>
+							<dependentTest omitted="0">SRAM_PVT:6T_bitcell_testbench:2</dependentTest>
+						</dependentTests>
+					</var>
+					<var>WPG
+						<value>120n</value>
+						<dependentTests>
+							<dependentTest omitted="0">SRAM_PVT:6T_bitcell_testbench:1</dependentTest>
+							<dependentTest omitted="0">SRAM_PVT:6T_bitcell_testbench:2</dependentTest>
+						</dependentTests>
+					</var>
+					<var>WPU
+						<value>120n</value>
+						<dependentTests>
+							<dependentTest omitted="0">SRAM_PVT:6T_bitcell_testbench:1</dependentTest>
+							<dependentTest omitted="0">SRAM_PVT:6T_bitcell_testbench:2</dependentTest>
+						</dependentTests>
+					</var>
+				</vars>
+				<overwritehistory>0</overwritehistory>
+				<tests>
+					<test enabled="1">SRAM_PVT:6T_bitcell_testbench:2
+						<tool>ADE</tool>
+						<tooloptions>
+							<option>cell
+								<value>6T_bitcell_testbench</value>
+							</option>
+							<option>lib
+								<value>SRAM_PVT</value>
+							</option>
+							<option>sim
+								<value>spectre</value>
+							</option>
+							<option>view
+								<value>schematic</value>
+							</option>
+							<option>path
+								<value>$AXL_SETUPDB_DIR/test_states</value>
+							</option>
+							<option>state
+								<value>ExplorerRun.0</value>
+							</option>
+						</tooloptions>
+						<vars>
+							<var>VDD
+								<value>1</value>
+							</var>
+							<var>WPD
+								<value>180n</value>
+							</var>
+							<var>WPG
+								<value>120n</value>
+							</var>
+							<var>WPU
+								<value>120n</value>
+							</var>
+						</vars>
+						<origoptions>
+							<option>cell
+								<value>6T_bitcell_testbench</value>
+							</option>
+							<option>lib
+								<value>SRAM_PVT</value>
+							</option>
+							<option>sim
+								<value>spectre</value>
+							</option>
+							<option>view
+								<value>schematic</value>
+							</option>
+						</origoptions>
+					</test>
+				</tests>
+				<checksasserts netlist="0">
+					<test netlist="0" netlistscope="all">SRAM_PVT:6T_bitcell_testbench:1</test>
+					<test netlist="0" netlistscope="all">SRAM_PVT:6T_bitcell_testbench:2</test>
+				</checksasserts>
+				<plottingoptions>
+					<plottingoption>plottype
+						<value>Auto</value>
+					</plottingoption>
+					<plottingoption>autoplotmode
+						<value>Replace</value>
+					</plottingoption>
+					<plottingoption>useMaestroPlottingTemplate
+						<value>yes</value>
+					</plottingoption>
+					<plottingoption>waveformtemplate
+						<value>(None)</value>
+					</plottingoption>
+					<plottingoption>autoplotsignals
+						<value>yes</value>
+					</plottingoption>
+					<plottingoption>autoplotwaveexpr
+						<value>yes</value>
+					</plottingoption>
+					<plottingoption>autoplotscalarexpr
+						<value>yes</value>
+					</plottingoption>
+					<plottingoption>annotatedesignname
+						<value>yes</value>
+					</plottingoption>
+					<plottingoption>annotatesimdate
+						<value>yes</value>
+					</plottingoption>
+					<plottingoption>annotatedesignvars
+						<value>no</value>
+					</plottingoption>
+					<plottingoption>annotatetemperature
+						<value>no</value>
+					</plottingoption>
+					<plottingoption>annotatescalaroutputs
+						<value>no</value>
+					</plottingoption>
+					<plottingoption>annotatespecmarkers
+						<value>no</value>
+					</plottingoption>
+					<plottingoption>directplotmode
+						<value>Append</value>
+					</plottingoption>
+					<plottingoption>directplotafter
+						<value>All Selections Are Made</value>
+					</plottingoption>
+					<plottingoption>histogramtype
+						<value>pass/fail</value>
+					</plottingoption>
+					<plottingoption>histogrambins
+						<value>10</value>
+					</plottingoption>
+					<plottingoption>showhistogramdensity
+						<value>yes</value>
+					</plottingoption>
+					<plottingoption>showhistogramdeviation
+						<value>yes</value>
+					</plottingoption>
+					<plottingoption>showhistogrampercentmarkers
+						<value>no</value>
+					</plottingoption>
+					<plottingoption>histogramqqplot
+						<value>no</value>
+					</plottingoption>
+					<plottingoption>showhistogrampoints
+						<value>yes</value>
+					</plottingoption>
+					<plottingoption>printafter
+						<value>Each Selection</value>
+					</plottingoption>
+					<plottingoption>usewaveformtemplate
+						<value>no</value>
+					</plottingoption>
+				</plottingoptions>
+				<exploreroptions>
+					<exploreroption>waveformtemplate
+						<value>(None)</value>
+					</exploreroption>
+				</exploreroptions>
+				<incrementalsimulationoptions>
+					<incrementalSimulation>0</incrementalSimulation>
+				</incrementalsimulationoptions>
+				<overwritehistoryname>Interactive.0</overwritehistoryname>
+				<incrementalsimsetup>
+					<useincremental>0</useincremental>
+					<reusenetlist>0</reusenetlist>
+					<copyreferenceresults>1</copyreferenceresults>
+				</incrementalsimsetup>
+				<runnabletests>
+					<test>SRAM_PVT:6T_bitcell_testbench:2</test>
+				</runnabletests>
+				<disabledtests></disabledtests>
+				<allsweepsenabled>1</allsweepsenabled>
+				<sortVariableValues>0</sortVariableValues>
+			</checkpoint>
+			<timestamp>Apr 20 19:39:19 2026</timestamp>
+			<resultsname>/lcars/home/t/tjammula/cadenceGPDK/SRAM_PVT/6T_bitcell_testbench/maestro/results/maestro/ExplorerRun.0.rdb</resultsname>
+			<simresults>$AXL_SETUPDB_DIR/results/maestro/ExplorerRun.0.rdb</simresults>
+			<rawdatadelstrategy>SaveAll
+				<simdatasavemode>All</simdatasavemode>
+			</rawdatadelstrategy>
+			<netlistdelstrategy>SaveAll</netlistdelstrategy>
+			<uselocalpsfdir>false</uselocalpsfdir>
+			<localpsfdir>/tmp/big20.seas.upenn.edu_tjammula_193919725</localpsfdir>
+			<psfdir>/lcars/home/t/tjammula/simulation/SRAM_PVT/6T_bitcell_testbench/maestro/results/maestro/ExplorerRun.0</psfdir>
+			<simdir>$AXL_PROJECT_DIR/SRAM_PVT/6T_bitcell_testbench/maestro/results/maestro/ExplorerRun.0</simdir>
+			<gendatasheetplotsonsimulation>1</gendatasheetplotsonsimulation>
+			<runlog>/lcars/home/t/tjammula/cadenceGPDK/SRAM_PVT/6T_bitcell_testbench/maestro/results/maestro/ExplorerRun.0.log</runlog>
+			<runlogfile>$AXL_SETUPDB_DIR/results/maestro/ExplorerRun.0.log</runlogfile>
 			<schematicpoint></schematicpoint>
 			<test>all</test>
 		</historyentry>
