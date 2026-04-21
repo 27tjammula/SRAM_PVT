@@ -13,7 +13,7 @@
 (envOpts enableNoiseRefactor) t
 (envOpts enablePhaseNoiseBW) t
 (envOpts extra_port) "false"
-(envOpts firstRun) t
+(envOpts firstRun) nil
 (envOpts licQueueSleep) ""
 (envOpts licQueueTimeOut) "900"
 (envOpts liclog) nil
