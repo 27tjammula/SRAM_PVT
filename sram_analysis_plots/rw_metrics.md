@@ -1,0 +1,14 @@
+# SRAM Read/Write Metrics
+
+Fixed windows:
+- standby: 0.200 ns to 1.800 ns
+- write energy: 2.995 ns to 6.005 ns
+- read baseline: 12.500 ns to 12.900 ns
+- read energy/disturb: 12.995 ns to 16.005 ns
+
+| corner | model | vdd_V | write_delay_ps | read_disturb_mV | standby_leakage_nA | write_energy_fJ | read_energy_fJ | read_delay_proxy_ps |
+| ------ | ----- | ----- | -------------- | --------------- | ------------------ | --------------- | -------------- | ------------------- |
+| ff     | ff    | 1.2   | 15.182         | 189.362         | 0.442965           | 1.204           | 0.188          | N/A                 |
+| ss_08  | ss    | 0.8   | 85.623         | 61.397          | 0.011356           | 0.764           | 0.032          | N/A                 |
+| ss_1   | ss    | 1     | 34.436         | 100.405         | 0.016752           | 0.687           | 0.063          | N/A                 |
+| tt     | tt    | 1     | 21.167         | 119.438         | 0.022536           | 1.055           | 0.070          | N/A                 |
