@@ -1,0 +1,21 @@
+//CELL FILE.. WRITE PULSE: 9ns CURRENT: 36.64uA TRANSISTOR WIDTH: 5.5
+
+-MemCellType: MRAM
+-CellArea (F^2): 40.2
+-CellAspectRatio: 0.82
+-ResistanceOn (ohm): 6000
+-ResistanceOff (ohm): 12000
+-ReadMode: current
+-ReadVoltage (V): 1.35
+-ReadCurrent (uA): 25
+-MinSenseVoltage (mV): 35
+-ResetMode: current
+-ResetCurrent (uA): 36.64
+-ResetPulse (ns): 9
+-ResetEnergy (pJ): 0.593568
+-SetMode: current
+-SetCurrent (uA): 36.64
+-SetPulse (ns): 9
+-SetEnergy (pJ): 0.593568
+-AccessType: CMOS
+-AccessCMOSWidth (F): 5.5
