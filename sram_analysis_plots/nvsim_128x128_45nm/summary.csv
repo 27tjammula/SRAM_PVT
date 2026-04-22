@@ -1,4 +1,0 @@
-roadmap,subarray,area_um2,area_eff_%,read_lat_ps,write_lat_ps,bitline_lat_ps,rowdec_lat_ps,read_energy_pJ,write_energy_pJ,leakage_uW
-HP,128x128,6318.533,76.662,251.740,251.740,69.191,89.118,1.492,1.131,3045.000
-LSTP,128x128,6285.082,77.070,762.106,762.106,212.989,248.026,1.480,1.126,0.479
-LOP,128x128,6285.082,77.070,473.169,473.169,158.666,145.913,0.738,0.558,40.081
