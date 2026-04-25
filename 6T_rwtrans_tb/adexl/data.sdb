@@ -912,5 +912,160 @@
 			<schematicpoint></schematicpoint>
 			<test>all</test>
 		</historyentry>
+		<historyentry assemblerOrExplorer="adexl" roOrView="view">Interactive.5
+			<checkpoint>
+				<corners>
+					<corner enabled="0">_default</corner>
+					<corner enabled="1">C0
+						<vars>
+							<var>temperature
+								<value>85</value>
+							</var>
+							<var>VDD
+								<value>1.2</value>
+							</var>
+							<var>WPD
+								<value>180n</value>
+							</var>
+							<var>WPG
+								<value>120n</value>
+							</var>
+							<var>WPU
+								<value>120n</value>
+							</var>
+						</vars>
+						<models>
+							<model enabled="1">gpdk045.scs
+								<modeltest>All</modeltest>
+								<modelblock>Global</modelblock>
+								<modelfile>/lcars/software/linux/x86_64/ic-design/design_kits/gpdk045_v_6_0/gpdk045/../models/spectre/gpdk045.scs</modelfile>
+								<modelsection>"ff"</modelsection>
+							</model>
+						</models>
+					</corner>
+				</corners>
+				<extensions>
+					<extension>Parasitics
+						<callback>_parSetupDBExtensionCB</callback>
+						<iconvalue></iconvalue>
+						<icontype></icontype>
+					</extension>
+				</extensions>
+				<currentmode>Single Run, Sweeps and Corners</currentmode>
+				<overwritehistory>0</overwritehistory>
+				<tests>
+					<test enabled="1">SRAM_PVT:6T_rwtrans_tb:1
+						<tool>ADE</tool>
+						<tooloptions>
+							<option>cell
+								<value>6T_rwtrans_tb</value>
+							</option>
+							<option>lib
+								<value>SRAM_PVT</value>
+							</option>
+							<option>sim
+								<value>spectre</value>
+							</option>
+							<option>view
+								<value>schematic</value>
+							</option>
+							<option>path
+								<value>$AXL_SETUPDB_DIR/test_states</value>
+							</option>
+							<option>state
+								<value>SRAM_PVT:6T_rwtrans_tb:1_tmpstate.302161454_Interactive.5</value>
+							</option>
+						</tooloptions>
+						<origoptions>
+							<option>cell
+								<value>6T_rwtrans_tb</value>
+							</option>
+							<option>lib
+								<value>SRAM_PVT</value>
+							</option>
+							<option>sim
+								<value>spectre</value>
+							</option>
+							<option>view
+								<value>schematic</value>
+							</option>
+							<option>path
+								<value>$AXL_SETUPDB_DIR/test_states</value>
+							</option>
+							<option>state
+								<value>tmpstate.302161454</value>
+							</option>
+						</origoptions>
+					</test>
+				</tests>
+				<vars>
+					<var>VDD
+						<value>1</value>
+						<dependentTests>
+							<dependentTest omitted="0">SRAM_PVT:6T_rwtrans_tb:1</dependentTest>
+						</dependentTests>
+					</var>
+					<var>WPG
+						<value>120n</value>
+						<dependentTests>
+							<dependentTest omitted="0">SRAM_PVT:6T_rwtrans_tb:1</dependentTest>
+						</dependentTests>
+					</var>
+					<var>WPD
+						<value>180n</value>
+						<dependentTests>
+							<dependentTest omitted="0">SRAM_PVT:6T_rwtrans_tb:1</dependentTest>
+						</dependentTests>
+					</var>
+					<var>WPU
+						<value>120n</value>
+						<dependentTests>
+							<dependentTest omitted="0">SRAM_PVT:6T_rwtrans_tb:1</dependentTest>
+						</dependentTests>
+					</var>
+				</vars>
+				<overwritehistoryname>Interactive.0</overwritehistoryname>
+				<plottingoptions>
+					<plottingoption>plottingmode
+						<value>Replace</value>
+					</plottingoption>
+					<plottingoption>plottype
+						<value>None</value>
+					</plottingoption>
+					<plottingoption>usewaveformtemplate
+						<value>no</value>
+					</plottingoption>
+					<plottingoption>useMaestroPlottingTemplate
+						<value>yes</value>
+					</plottingoption>
+					<plottingoption>waveformtemplate
+						<value></value>
+					</plottingoption>
+					<plottingoption>allplottingtemplates
+						<value></value>
+					</plottingoption>
+					<plottingoption>defaultplottingtemplate
+						<value></value>
+					</plottingoption>
+				</plottingoptions>
+				<sortVariableValues>0</sortVariableValues>
+			</checkpoint>
+			<timestamp>Apr 25 13:19:16 2026</timestamp>
+			<resultsname>/lcars/home/k/krishkc/cadenceGPDK/SRAM_PVT/6T_rwtrans_tb/adexl/results/data/Interactive.5.rdb</resultsname>
+			<simresults>$AXL_SETUPDB_DIR/results/data/Interactive.5.rdb</simresults>
+			<rawdatadelstrategy>SaveAll
+				<simdatasavemode>All</simdatasavemode>
+			</rawdatadelstrategy>
+			<netlistdelstrategy>SaveAll</netlistdelstrategy>
+			<uselocalpsfdir>false</uselocalpsfdir>
+			<localpsfdir>/tmp/big13.seas.upenn.edu_krishkc_131916604</localpsfdir>
+			<psfdir>/lcars/home/k/krishkc/simulation/SRAM_PVT/6T_rwtrans_tb/adexl/results/data/Interactive.5</psfdir>
+			<simdir>$AXL_PROJECT_DIR/SRAM_PVT/6T_rwtrans_tb/adexl/results/data/Interactive.5</simdir>
+			<gendatasheetplotsonsimulation>1</gendatasheetplotsonsimulation>
+			<runlog>/lcars/home/k/krishkc/cadenceGPDK/SRAM_PVT/6T_rwtrans_tb/adexl/results/data/Interactive.5.log</runlog>
+			<runlogfile>$AXL_SETUPDB_DIR/results/data/Interactive.5.log</runlogfile>
+			<schematicpoint></schematicpoint>
+			<test>all</test>
+		</historyentry>
 	</history>
 </setupdb>
