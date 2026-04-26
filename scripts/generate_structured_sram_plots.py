@@ -149,7 +149,9 @@ def plot_wnm_csv(
     sim_data_root: Path,
 ) -> float:
     curve_left, curve_right = wnm_curves_from_csv(csv_path, header, data)
-    fit = diagonal_square_between_curves(curve_left, curve_right)
+    fit = diagonal_square_from_crossings(curve_left, curve_right)
+    if fit is None:
+        fit = diagonal_square_between_curves(curve_left, curve_right)
     plot_butterfly(curve_left, curve_right, fit, "WNM", csv_path, output_path, sim_data_root)
     return 0.0 if fit is None else fit.side
 
@@ -175,8 +177,19 @@ def wnm_curves_from_csv(
         )
 
     common_sweep = 0.5 * (q_sweep + qb_sweep)
-    curve_left = Curve2D(qb_values, common_sweep, "QB(sweep) transposed")
-    curve_right = Curve2D(q_values, common_sweep, "Q(sweep) transposed")
+    sweep_max = float(np.max(common_sweep))
+    q_high = float(np.max(q_values))
+    scale = 1.0 if sweep_max <= 1e-12 else q_high / sweep_max
+    sweep_v = common_sweep * scale
+
+    # The ADE write exports use a shared sweep axis that is often normalized to
+    # 0..1 even when the actual cell high level is not 1 V. Convert that sweep
+    # back into volts, keep Q in the direct (sweep, Q) plane, and mirror only
+    # QB into the same butterfly plane. This preserves the diagonal-corner WNM
+    # construction on V1 = V2 while keeping the branch geometry physically
+    # aligned in the FF/SS baseline plots.
+    curve_left = Curve2D(qb_values, sweep_v, "QB(sweep) mirrored")
+    curve_right = Curve2D(sweep_v, q_values, "Q(sweep) direct")
     return curve_left, curve_right
 
 
@@ -212,12 +225,13 @@ def plot_butterfly(
         )
         ax.fill(fit.square_xy[:, 0], fit.square_xy[:, 1], color=SQUARE_COLOR, alpha=0.10)
         if len(fit.contacts_xy) > 0:
+            contact_marker_size = 6.0 if margin_label == "WNM" else 7.0
             ax.plot(
                 fit.contacts_xy[:, 0],
                 fit.contacts_xy[:, 1],
                 "o",
                 color=CONTACT_COLOR,
-                markersize=7,
+                markersize=contact_marker_size,
                 markeredgecolor="black",
                 markeredgewidth=0.6,
                 label="contact points",
@@ -441,6 +455,42 @@ def diagonal_square_between_curves(
         [[x_left, y_bottom], [x_left + side, y_bottom + side]],
         dtype=float,
     )
+    return SquareFit(
+        side=side,
+        x_left=x_left,
+        y_bottom=y_bottom,
+        square_xy=corners,
+        contacts_xy=contacts,
+    )
+
+
+def diagonal_square_from_crossings(
+    curve_left: Curve2D,
+    curve_right: Curve2D,
+) -> SquareFit | None:
+    left_crossings = curve_diagonal_crossings(curve_left)
+    right_crossings = curve_diagonal_crossings(curve_right)
+    if len(left_crossings) == 0 or len(right_crossings) == 0:
+        return None
+
+    lower = left_crossings[np.argmin(np.sum(left_crossings, axis=1))]
+    upper = right_crossings[np.argmax(np.sum(right_crossings, axis=1))]
+    side = float(upper[0] - lower[0])
+    if side <= SIDE_TOL:
+        return None
+
+    x_left = float(lower[0])
+    y_bottom = float(lower[1])
+    corners = np.asarray(
+        [
+            [x_left, y_bottom],
+            [x_left + side, y_bottom],
+            [x_left + side, y_bottom + side],
+            [x_left, y_bottom + side],
+        ],
+        dtype=float,
+    )
+    contacts = np.asarray([lower, upper], dtype=float)
     return SquareFit(
         side=side,
         x_left=x_left,
@@ -753,6 +803,36 @@ def unique_points(points: list[np.ndarray]) -> np.ndarray:
             continue
         unique.append(point)
     return np.asarray(unique, dtype=float)
+
+
+def curve_diagonal_crossings(curve: Curve2D) -> np.ndarray:
+    points: list[np.ndarray] = []
+    for index in range(len(curve.x) - 1):
+        x0 = float(curve.x[index])
+        y0 = float(curve.y[index])
+        x1 = float(curve.x[index + 1])
+        y1 = float(curve.y[index + 1])
+        d0 = y0 - x0
+        d1 = y1 - x1
+
+        if abs(d0) <= ROOT_TOL:
+            points.append(np.asarray([x0, y0], dtype=float))
+        if abs(d1) <= ROOT_TOL:
+            points.append(np.asarray([x1, y1], dtype=float))
+        if d0 * d1 >= 0.0:
+            continue
+
+        denom = d0 - d1
+        if abs(denom) <= ROOT_TOL:
+            continue
+        t = d0 / denom
+        point = np.asarray(
+            [x0 + t * (x1 - x0), y0 + t * (y1 - y0)],
+            dtype=float,
+        )
+        points.append(point)
+
+    return unique_points(points)
 
 
 def plot_voltage_csv(csv_path: Path, output_path: Path, sim_data_root: Path) -> None:
