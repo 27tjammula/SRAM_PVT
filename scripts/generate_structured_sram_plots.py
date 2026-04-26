@@ -148,13 +148,17 @@ def plot_wnm_csv(
     output_path: Path,
     sim_data_root: Path,
 ) -> float:
-    curve_a, curve_b = wnm_curves_from_csv(csv_path, header, data)
-    fit = largest_square_between_curves(curve_a, curve_b, choose_smallest=False)
-    plot_butterfly(curve_a, curve_b, fit, "WNM", csv_path, output_path, sim_data_root)
+    curve_left, curve_right = wnm_curves_from_csv(csv_path, header, data)
+    fit = lower_half_square_between_curves(curve_left, curve_right)
+    plot_butterfly(curve_left, curve_right, fit, "WNM", csv_path, output_path, sim_data_root)
     return 0.0 if fit is None else fit.side
 
 
-def wnm_curves_from_csv(csv_path: Path, header: list[str], data: np.ndarray) -> tuple[Curve2D, Curve2D]:
+def wnm_curves_from_csv(
+    csv_path: Path,
+    header: list[str],
+    data: np.ndarray,
+) -> tuple[Curve2D, Curve2D]:
     traces: dict[str, tuple[np.ndarray, np.ndarray]] = {}
     for index in range(0, 4, 2):
         signal = signal_from_header(header[index])
@@ -171,10 +175,9 @@ def wnm_curves_from_csv(csv_path: Path, header: list[str], data: np.ndarray) -> 
         )
 
     common_sweep = 0.5 * (q_sweep + qb_sweep)
-    return (
-        Curve2D(common_sweep, q_values, "Q(sweep)"),
-        Curve2D(qb_values, common_sweep, "QB(sweep) transposed"),
-    )
+    curve_left = Curve2D(qb_values, common_sweep, "QB(sweep) transposed")
+    curve_right = Curve2D(q_values, common_sweep, "Q(sweep) transposed")
+    return curve_left, curve_right
 
 
 def plot_butterfly(
@@ -298,6 +301,8 @@ def eye_intervals(
 ) -> list[tuple[float, float]]:
     grid = np.linspace(x_lo, x_hi, EYE_SCAN_SAMPLES)
     diff = interp_b(grid) - interp_a(grid)
+    if np.all(np.isnan(diff)):
+        return []
 
     roots = [x_lo]
     for index in range(len(grid) - 1):
@@ -362,6 +367,26 @@ def fit_square_in_interval(
         refined = coarse
 
     return refine_square_placement(interp_a, interp_b, interval_lo, interval_hi, refined)
+
+
+def lower_half_square_between_curves(curve_a: Curve2D, curve_b: Curve2D) -> SquareFit | None:
+    x_a, _, interp_a = curve_as_y_of_x(curve_a)
+    x_b, _, interp_b = curve_as_y_of_x(curve_b)
+
+    x_lo = max(float(x_a[0]), float(x_b[0]))
+    x_hi = min(float(x_a[-1]), float(x_b[-1]))
+    if x_hi - x_lo <= SIDE_TOL:
+        return None
+
+    fits: list[SquareFit] = []
+    for interval_lo, interval_hi in eye_intervals(interp_a, interp_b, x_lo, x_hi):
+        fit = fit_square_in_interval(interp_a, interp_b, interval_lo, interval_hi)
+        if fit is not None and fit.side > SIDE_TOL:
+            fits.append(fit)
+
+    if not fits:
+        return None
+    return min(fits, key=lambda fit: (fit.y_bottom, fit.x_left, -fit.side))
 
 
 def fit_square_on_grid(
@@ -507,8 +532,12 @@ def refine_square_placement(
     if best is None:
         return None
 
-    x_left = float(best["x_left"])
-    y_bottom = float(best["y_bottom"])
+    return square_fit_from_candidate(side, best)
+
+
+def square_fit_from_candidate(side: float, candidate: dict[str, float | np.ndarray]) -> SquareFit:
+    x_left = float(candidate["x_left"])
+    y_bottom = float(candidate["y_bottom"])
     corners_xy = np.asarray(
         [
             [x_left, y_bottom],
@@ -518,7 +547,7 @@ def refine_square_placement(
         ],
         dtype=float,
     )
-    contacts_xy = np.asarray(best["contacts_xy"], dtype=float)
+    contacts_xy = np.asarray(candidate["contacts_xy"], dtype=float)
     return SquareFit(
         side=side,
         x_left=x_left,
