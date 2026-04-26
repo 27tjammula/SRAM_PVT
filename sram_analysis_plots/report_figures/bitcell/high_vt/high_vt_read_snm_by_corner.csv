@@ -1,0 +1,4 @@
+corner,label,baseline_read_snm_mV,high_vt_read_snm_mV,delta_mV,delta_percent
+ff,FF 1.2 V,222.939201,206.606503,-16.332698,-7.326077
+tt,TT 1.0 V,212.490719,190.888726,-21.601993,-10.166088
+ss_1V,SS 1.0 V,224.231356,206.349402,-17.881954,-7.974779

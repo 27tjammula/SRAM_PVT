@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import argparse
+import csv
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import matplotlib
 
@@ -34,6 +36,8 @@ PNG_DPI = 400
 BUTTERFLY_FIGSIZE = (6.6, 5.9)
 BAR_FIGSIZE = (6.8, 4.2)
 GRID_FIGSIZE = (8.0, 5.6)
+SUMMARY_FIGSIZE = (10.0, 4.6)
+TRADEOFF_FIGSIZE = (8.0, 3.6)
 AXIS_LIMIT = 1.25
 AXIS_TICKS = np.arange(0.0, 1.21, 0.2)
 
@@ -123,6 +127,7 @@ def main() -> None:
     sim_data_root = args.sim_data_root.resolve()
     output_root = args.output_root.resolve()
     output_root.mkdir(parents=True, exist_ok=True)
+    bitcell_metrics = collect_bitcell_metrics(sim_data_root)
 
     guide_entries: list[GuideEntry] = []
 
@@ -133,6 +138,12 @@ def main() -> None:
     for path in (baseline_dir, high_vt_dir, negative_bitline_dir, wordline_dir):
         path.mkdir(parents=True, exist_ok=True)
 
+    guide_entries.append(
+        plot_bitcell_results_summary(
+            output_root / "bitcell_results_summary",
+            bitcell_metrics,
+        )
+    )
     guide_entries.append(
         plot_butterfly_overlay(
             baseline_dir / "baseline_hold_snm_all_corners",
@@ -258,6 +269,12 @@ def main() -> None:
             [
                 "The figure reports only the optimized bitcell; use the separate baseline overlay for direct shape comparison.",
             ],
+        )
+    )
+    guide_entries.append(
+        plot_high_vt_tradeoff_summary(
+            high_vt_dir / "high_vt_tradeoff_summary",
+            bitcell_metrics,
         )
     )
     guide_entries.append(
@@ -523,10 +540,702 @@ def main() -> None:
         )
     )
 
+    write_bitcell_summary_outputs(output_root, bitcell_metrics)
+
     guide_path = output_root / "figure_guide.md"
     write_figure_guide(guide_path, guide_entries)
     verify_guide_entries(guide_path, guide_entries)
     print_saved_path(guide_path)
+
+
+def collect_bitcell_metrics(sim_data_root: Path = SIM_DATA_ROOT) -> dict[str, Any]:
+    baseline_hold = {
+        "ff": load_snm_overlay_case(sim_data_root / "baseline" / "hold" / "holdSNM_ff.csv", "ff", "FF 1.2 V").margin_mv,
+        "tt": load_snm_overlay_case(sim_data_root / "baseline" / "hold" / "holdSNM_tt.csv", "tt", "TT 1.0 V").margin_mv,
+        "ss_1V": load_snm_overlay_case(sim_data_root / "baseline" / "hold" / "holdSNM_ss.csv", "ss", "SS 1.0 V").margin_mv,
+    }
+    baseline_read = {
+        "ff": load_snm_overlay_case(sim_data_root / "baseline" / "read" / "ReadSNM_ff.csv", "ff", "FF 1.2 V").margin_mv,
+        "tt": load_snm_overlay_case(sim_data_root / "baseline" / "read" / "ReadSNM_tt.csv", "tt", "TT 1.0 V").margin_mv,
+        "ss_1V": load_snm_overlay_case(sim_data_root / "baseline" / "read" / "ReadSNM_ss.csv", "ss", "SS 1.0 V").margin_mv,
+    }
+    baseline_write_nm = {
+        "ff": load_wnm_overlay_case(sim_data_root / "baseline" / "write" / "writenm_ff.csv", "ff", "FF 1.2 V").margin_mv,
+        "tt": load_wnm_overlay_case(sim_data_root / "baseline" / "write" / "writenm_tt.csv", "tt", "TT 1.0 V").margin_mv,
+        "ss_1V": load_wnm_overlay_case(sim_data_root / "baseline" / "write" / "writenm_ss.csv", "ss", "SS 1.0 V").margin_mv,
+    }
+    high_vt_hold = {
+        "ff": load_snm_overlay_case(
+            sim_data_root / "optimized" / "high_vt" / "hold_snm_opt_vt_ff.csv", "ff", "FF 1.2 V"
+        ).margin_mv,
+        "tt": load_snm_overlay_case(
+            sim_data_root / "optimized" / "high_vt" / "hold_snm_opt_vt_tt.csv", "tt", "TT 1.0 V"
+        ).margin_mv,
+        "ss_1V": load_snm_overlay_case(
+            sim_data_root / "optimized" / "high_vt" / "hold_snm_opt_vt_ss.csv", "ss", "SS 1.0 V"
+        ).margin_mv,
+    }
+    high_vt_read = {
+        "ff": load_snm_overlay_case(
+            sim_data_root / "optimized" / "high_vt" / "opt_Vt_readSNM_ff.csv", "ff", "FF 1.2 V"
+        ).margin_mv,
+        "tt": load_snm_overlay_case(
+            sim_data_root / "optimized" / "high_vt" / "opt_Vt_readSNM_tt.csv", "tt", "TT 1.0 V"
+        ).margin_mv,
+        "ss_1V": load_snm_overlay_case(
+            sim_data_root / "optimized" / "high_vt" / "opt_Vt_readSNM_ss.csv", "ss", "SS 1.0 V"
+        ).margin_mv,
+    }
+    high_vt_hold_energy = {
+        "ff": comparative_metric_entry(
+            integrate_supply_energy(sim_data_root / "baseline" / "rwtrans" / "rw_ff.csv", (6.0, 9.0)),
+            integrate_supply_energy(sim_data_root / "optimized" / "high_vt" / "trans_vt_opt_ff.csv", (6.0, 9.0)),
+        ),
+        "tt": comparative_metric_entry(
+            integrate_supply_energy(sim_data_root / "baseline" / "rwtrans" / "rw_tt.csv", (6.0, 9.0)),
+            integrate_supply_energy(sim_data_root / "optimized" / "high_vt" / "trans_vt_opt_tt.csv", (6.0, 9.0)),
+        ),
+        "ss_1V": comparative_metric_entry(
+            integrate_supply_energy(sim_data_root / "baseline" / "rwtrans" / "rw_ss_1.csv", (6.0, 9.0)),
+            integrate_supply_energy(sim_data_root / "optimized" / "high_vt" / "trans_vt_opt_ss_1V.csv", (6.0, 9.0)),
+        ),
+        "ss_0.8V": comparative_metric_entry(
+            integrate_supply_energy(sim_data_root / "baseline" / "rwtrans" / "rw_ss_08.csv", (6.0, 9.0)),
+            integrate_supply_energy(sim_data_root / "optimized" / "high_vt" / "trans_vt_opt_ss_0.8V.csv", (6.0, 9.0)),
+        ),
+    }
+    negative_bl_delay = {
+        "ff": delay_metric_entry(
+            measure_negative_bitline_delay(
+                "FF 1.2 V",
+                1.2,
+                sim_data_root / "baseline" / "rwtrans" / "rw_ff.csv",
+                sim_data_root / "optimized" / "negative_bitline" / "trans_negBLopt_ff.csv",
+            )
+        ),
+        "tt": delay_metric_entry(
+            measure_negative_bitline_delay(
+                "TT 1.0 V",
+                1.0,
+                sim_data_root / "baseline" / "rwtrans" / "rw_tt.csv",
+                sim_data_root / "optimized" / "negative_bitline" / "trans_negBLopt_tt.csv",
+            )
+        ),
+        "ss_1V": delay_metric_entry(
+            measure_negative_bitline_delay(
+                "SS 1.0 V",
+                1.0,
+                sim_data_root / "baseline" / "rwtrans" / "rw_ss_1.csv",
+                sim_data_root / "optimized" / "negative_bitline" / "trans_negBLopt_ss_1V.csv",
+            )
+        ),
+        "ss_0.8V": delay_metric_entry(
+            measure_negative_bitline_delay(
+                "SS 0.8 V",
+                0.8,
+                sim_data_root / "baseline" / "rwtrans" / "rw_ss_08.csv",
+                sim_data_root / "optimized" / "negative_bitline" / "trans_negBLopt_ss_0.8V.csv",
+            )
+        ),
+    }
+    wl_underdrive_read = {
+        "ff": load_snm_overlay_case(
+            sim_data_root / "optimized" / "wordline_underdrive" / "read_snm_opt_ff.csv", "ff", "FF 1.2 V"
+        ).margin_mv,
+        "tt": load_snm_overlay_case(
+            sim_data_root / "optimized" / "wordline_underdrive" / "read_snm_opt_tt.csv", "tt", "TT 1.0 V"
+        ).margin_mv,
+        "ss_1V": load_snm_overlay_case(
+            sim_data_root / "optimized" / "wordline_underdrive" / "read_snm_opt_ss.csv", "ss", "SS 1.0 V"
+        ).margin_mv,
+    }
+    wl_underdrive_read_disturb = {
+        "ff": comparative_metric_entry(
+            measure_read_disturb(sim_data_root / "baseline" / "rwtrans" / "rw_ff.csv", pulse_window_ns=(13.0, 16.0)),
+            measure_read_disturb(
+                sim_data_root / "optimized" / "wordline_underdrive" / "trans_WLunderopt_ff.csv",
+                pulse_window_ns=(15.0, 18.0),
+            ),
+        ),
+        "tt": comparative_metric_entry(
+            measure_read_disturb(sim_data_root / "baseline" / "rwtrans" / "rw_tt.csv", pulse_window_ns=(13.0, 16.0)),
+            measure_read_disturb(
+                sim_data_root / "optimized" / "wordline_underdrive" / "trans_WLunderopt_tt.csv",
+                pulse_window_ns=(15.0, 18.0),
+            ),
+        ),
+        "ss_1V": comparative_metric_entry(
+            measure_read_disturb(sim_data_root / "baseline" / "rwtrans" / "rw_ss_1.csv", pulse_window_ns=(13.0, 16.0)),
+            measure_read_disturb(
+                sim_data_root / "optimized" / "wordline_underdrive" / "trans_WLunderopt_ss_1V.csv",
+                pulse_window_ns=(15.0, 18.0),
+            ),
+        ),
+        "ss_0.8V": comparative_metric_entry(
+            measure_read_disturb(sim_data_root / "baseline" / "rwtrans" / "rw_ss_08.csv", pulse_window_ns=(13.0, 16.0)),
+            measure_read_disturb(
+                sim_data_root / "optimized" / "wordline_underdrive" / "trans_WLunderopt_ss_0.8V.csv",
+                pulse_window_ns=(15.0, 18.0),
+            ),
+        ),
+    }
+
+    return {
+        "baseline_hold_snm_mv": baseline_hold,
+        "baseline_read_snm_mv": baseline_read,
+        "baseline_write_nm_mv": baseline_write_nm,
+        "high_vt_hold_snm_mv": high_vt_hold,
+        "high_vt_read_snm_mv": high_vt_read,
+        "high_vt_hold_energy_aj": high_vt_hold_energy,
+        "negative_bl_write_delay_ps": negative_bl_delay,
+        "wl_underdrive_read_snm_mv": wl_underdrive_read,
+        "wl_underdrive_read_disturb_mv": wl_underdrive_read_disturb,
+    }
+
+
+def comparative_metric_entry(baseline_value: float, optimized_value: float) -> dict[str, float]:
+    return {
+        "baseline_value": baseline_value,
+        "optimized_value": optimized_value,
+        "delta_value": optimized_value - baseline_value,
+        "delta_percent": percent_delta(baseline_value, optimized_value),
+    }
+
+
+def delay_metric_entry(measurement: DelayMeasurement) -> dict[str, float]:
+    return comparative_metric_entry(measurement.baseline_delay_ps, measurement.optimized_delay_ps)
+
+
+def percent_delta(baseline_value: float, optimized_value: float) -> float:
+    if baseline_value == 0.0:
+        return 0.0
+    return 100.0 * (optimized_value - baseline_value) / baseline_value
+
+
+def corner_label(corner: str) -> str:
+    labels = {
+        "ff": "FF 1.2 V",
+        "tt": "TT 1.0 V",
+        "ss_1V": "SS 1.0 V",
+        "ss_0.8V": "SS 0.8 V",
+    }
+    return labels.get(corner, corner)
+
+
+def format_float(value: float) -> str:
+    return f"{value:.6f}"
+
+
+def build_bitcell_summary_rows(bitcell_metrics: dict[str, Any]) -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    rows.extend(
+        bitcell_margin_rows(
+            metric_family="Hold SNM",
+            case="Baseline",
+            values=bitcell_metrics["baseline_hold_snm_mv"],
+            unit="mV",
+            source_files=[
+                "sim_data/baseline/hold/holdSNM_ff.csv",
+                "sim_data/baseline/hold/holdSNM_tt.csv",
+                "sim_data/baseline/hold/holdSNM_ss.csv",
+            ],
+            notes="Largest-square SNM extraction from the hold butterfly CSVs.",
+        )
+    )
+    rows.extend(
+        bitcell_margin_rows(
+            metric_family="Read SNM",
+            case="Baseline",
+            values=bitcell_metrics["baseline_read_snm_mv"],
+            unit="mV",
+            source_files=[
+                "sim_data/baseline/read/ReadSNM_ff.csv",
+                "sim_data/baseline/read/ReadSNM_tt.csv",
+                "sim_data/baseline/read/ReadSNM_ss.csv",
+            ],
+            notes="Largest-square limiting-eye extraction from the read butterfly CSVs.",
+        )
+    )
+    rows.extend(
+        bitcell_margin_rows(
+            metric_family="Write Noise Margin",
+            case="Baseline",
+            values=bitcell_metrics["baseline_write_nm_mv"],
+            unit="mV",
+            source_files=[
+                "sim_data/baseline/write/writenm_ff.csv",
+                "sim_data/baseline/write/writenm_tt.csv",
+                "sim_data/baseline/write/writenm_ss.csv",
+            ],
+            notes="Diagonal-corner WNM extraction following the current project convention.",
+        )
+    )
+    rows.extend(
+        bitcell_comparative_rows(
+            metric_family="Hold SNM",
+            case="High Vt",
+            baseline_values=bitcell_metrics["baseline_hold_snm_mv"],
+            optimized_values=bitcell_metrics["high_vt_hold_snm_mv"],
+            unit="mV",
+            source_files=[
+                "sim_data/optimized/high_vt/hold_snm_opt_vt_ff.csv",
+                "sim_data/optimized/high_vt/hold_snm_opt_vt_tt.csv",
+                "sim_data/optimized/high_vt/hold_snm_opt_vt_ss.csv",
+            ],
+            notes="High-Vt hold SNM relative to the baseline cell.",
+        )
+    )
+    rows.extend(
+        bitcell_comparative_rows(
+            metric_family="Read SNM",
+            case="High Vt",
+            baseline_values=bitcell_metrics["baseline_read_snm_mv"],
+            optimized_values=bitcell_metrics["high_vt_read_snm_mv"],
+            unit="mV",
+            source_files=[
+                "sim_data/optimized/high_vt/opt_Vt_readSNM_ff.csv",
+                "sim_data/optimized/high_vt/opt_Vt_readSNM_tt.csv",
+                "sim_data/optimized/high_vt/opt_Vt_readSNM_ss.csv",
+            ],
+            notes="High-Vt read SNM relative to the baseline cell.",
+        )
+    )
+    rows.extend(
+        bitcell_comparative_rows_from_entries(
+            metric_family="Hold-Window Supply Energy",
+            case="High Vt",
+            comparative_entries=bitcell_metrics["high_vt_hold_energy_aj"],
+            unit="aJ",
+            source_files=[
+                "sim_data/baseline/rwtrans/rw_ff.csv",
+                "sim_data/baseline/rwtrans/rw_tt.csv",
+                "sim_data/baseline/rwtrans/rw_ss_1.csv",
+                "sim_data/baseline/rwtrans/rw_ss_08.csv",
+                "sim_data/optimized/high_vt/trans_vt_opt_ff.csv",
+                "sim_data/optimized/high_vt/trans_vt_opt_tt.csv",
+                "sim_data/optimized/high_vt/trans_vt_opt_ss_1V.csv",
+                "sim_data/optimized/high_vt/trans_vt_opt_ss_0.8V.csv",
+            ],
+            notes="Integrated 6-9 ns supply energy used as the hold-window leakage-oriented metric.",
+        )
+    )
+    rows.extend(
+        bitcell_comparative_rows_from_entries(
+            metric_family="Write Delay",
+            case="Negative BL",
+            comparative_entries=bitcell_metrics["negative_bl_write_delay_ps"],
+            unit="ps",
+            source_files=[
+                "sim_data/baseline/rwtrans/rw_ff.csv",
+                "sim_data/baseline/rwtrans/rw_tt.csv",
+                "sim_data/baseline/rwtrans/rw_ss_1.csv",
+                "sim_data/baseline/rwtrans/rw_ss_08.csv",
+                "sim_data/optimized/negative_bitline/trans_negBLopt_ff.csv",
+                "sim_data/optimized/negative_bitline/trans_negBLopt_tt.csv",
+                "sim_data/optimized/negative_bitline/trans_negBLopt_ss_1V.csv",
+                "sim_data/optimized/negative_bitline/trans_negBLopt_ss_0.8V.csv",
+            ],
+            notes="WL-to-Q assisted write delay measured from the transient benches.",
+        )
+    )
+    rows.extend(
+        bitcell_comparative_rows(
+            metric_family="Read SNM",
+            case="WL Underdrive",
+            baseline_values=bitcell_metrics["baseline_read_snm_mv"],
+            optimized_values=bitcell_metrics["wl_underdrive_read_snm_mv"],
+            unit="mV",
+            source_files=[
+                "sim_data/optimized/wordline_underdrive/read_snm_opt_ff.csv",
+                "sim_data/optimized/wordline_underdrive/read_snm_opt_tt.csv",
+                "sim_data/optimized/wordline_underdrive/read_snm_opt_ss.csv",
+            ],
+            notes="Wordline-underdrive read SNM relative to the baseline cell.",
+        )
+    )
+    rows.extend(
+        bitcell_comparative_rows_from_entries(
+            metric_family="Read Disturb",
+            case="WL Underdrive",
+            comparative_entries=bitcell_metrics["wl_underdrive_read_disturb_mv"],
+            unit="mV",
+            source_files=[
+                "sim_data/baseline/rwtrans/rw_ff.csv",
+                "sim_data/baseline/rwtrans/rw_tt.csv",
+                "sim_data/baseline/rwtrans/rw_ss_1.csv",
+                "sim_data/baseline/rwtrans/rw_ss_08.csv",
+                "sim_data/optimized/wordline_underdrive/trans_WLunderopt_ff.csv",
+                "sim_data/optimized/wordline_underdrive/trans_WLunderopt_tt.csv",
+                "sim_data/optimized/wordline_underdrive/trans_WLunderopt_ss_1V.csv",
+                "sim_data/optimized/wordline_underdrive/trans_WLunderopt_ss_0.8V.csv",
+            ],
+            notes="Pulse-window transient read-disturb metric measured on QB during the read pulse.",
+        )
+    )
+    return rows
+
+
+def bitcell_margin_rows(
+    *,
+    metric_family: str,
+    case: str,
+    values: dict[str, float],
+    unit: str,
+    source_files: list[str],
+    notes: str,
+) -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    for corner, value in values.items():
+        rows.append(
+            {
+                "metric_family": metric_family,
+                "case": case,
+                "corner": corner,
+                "corner_label": corner_label(corner),
+                "value": format_float(value),
+                "unit": unit,
+                "reference_case": "NA",
+                "reference_value": "NA",
+                "delta_value": "NA",
+                "delta_percent": "NA",
+                "evidence_type": "Measured in Cadence",
+                "source_files": "; ".join(source_files),
+                "notes": notes,
+            }
+        )
+    return rows
+
+
+def bitcell_comparative_rows(
+    *,
+    metric_family: str,
+    case: str,
+    baseline_values: dict[str, float],
+    optimized_values: dict[str, float],
+    unit: str,
+    source_files: list[str],
+    notes: str,
+) -> list[dict[str, str]]:
+    entries = {
+        corner: comparative_metric_entry(baseline_values[corner], optimized_values[corner])
+        for corner in sorted(set(baseline_values) & set(optimized_values))
+    }
+    return bitcell_comparative_rows_from_entries(
+        metric_family=metric_family,
+        case=case,
+        comparative_entries=entries,
+        unit=unit,
+        source_files=source_files,
+        notes=notes,
+    )
+
+
+def bitcell_comparative_rows_from_entries(
+    *,
+    metric_family: str,
+    case: str,
+    comparative_entries: dict[str, dict[str, float]],
+    unit: str,
+    source_files: list[str],
+    notes: str,
+) -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    for corner, entry in comparative_entries.items():
+        rows.append(
+            {
+                "metric_family": metric_family,
+                "case": case,
+                "corner": corner,
+                "corner_label": corner_label(corner),
+                "value": format_float(entry["optimized_value"]),
+                "unit": unit,
+                "reference_case": "Baseline",
+                "reference_value": format_float(entry["baseline_value"]),
+                "delta_value": format_float(entry["delta_value"]),
+                "delta_percent": format_float(entry["delta_percent"]),
+                "evidence_type": "Measured in Cadence",
+                "source_files": "; ".join(source_files),
+                "notes": notes,
+            }
+        )
+    return rows
+
+
+def write_bitcell_summary_outputs(output_root: Path, bitcell_metrics: dict[str, Any]) -> None:
+    summary_rows = build_bitcell_summary_rows(bitcell_metrics)
+    csv_path = output_root / "bitcell_summary.csv"
+    md_path = output_root / "bitcell_summary.md"
+    write_csv_rows(csv_path, summary_rows)
+    write_bitcell_summary_markdown(md_path, bitcell_metrics, summary_rows)
+    print_saved_path(csv_path)
+    print_saved_path(md_path)
+
+
+def write_csv_rows(path: Path, rows: list[dict[str, str]]) -> None:
+    if not rows:
+        raise ValueError(f"No rows to write to {path}")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="") as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=list(rows[0].keys()))
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def write_bitcell_summary_markdown(
+    path: Path,
+    bitcell_metrics: dict[str, Any],
+    summary_rows: list[dict[str, str]],
+) -> None:
+    baseline_rows = [
+        ["Hold SNM", f"{bitcell_metrics['baseline_hold_snm_mv']['ff']:.1f}", f"{bitcell_metrics['baseline_hold_snm_mv']['tt']:.1f}", f"{bitcell_metrics['baseline_hold_snm_mv']['ss_1V']:.1f}"],
+        ["Read SNM", f"{bitcell_metrics['baseline_read_snm_mv']['ff']:.1f}", f"{bitcell_metrics['baseline_read_snm_mv']['tt']:.1f}", f"{bitcell_metrics['baseline_read_snm_mv']['ss_1V']:.1f}"],
+        ["Write NM", f"{bitcell_metrics['baseline_write_nm_mv']['ff']:.1f}", f"{bitcell_metrics['baseline_write_nm_mv']['tt']:.1f}", f"{bitcell_metrics['baseline_write_nm_mv']['ss_1V']:.1f}"],
+    ]
+    high_vt_rows = [
+        ["FF 1.2 V", f"{bitcell_metrics['high_vt_hold_energy_aj']['ff']['delta_percent']:+.1f}%", f"{percent_delta(bitcell_metrics['baseline_read_snm_mv']['ff'], bitcell_metrics['high_vt_read_snm_mv']['ff']):+.1f}%", f"{percent_delta(bitcell_metrics['baseline_hold_snm_mv']['ff'], bitcell_metrics['high_vt_hold_snm_mv']['ff']):+.1f}%"],
+        ["TT 1.0 V", f"{bitcell_metrics['high_vt_hold_energy_aj']['tt']['delta_percent']:+.1f}%", f"{percent_delta(bitcell_metrics['baseline_read_snm_mv']['tt'], bitcell_metrics['high_vt_read_snm_mv']['tt']):+.1f}%", f"{percent_delta(bitcell_metrics['baseline_hold_snm_mv']['tt'], bitcell_metrics['high_vt_hold_snm_mv']['tt']):+.1f}%"],
+        ["SS 1.0 V", f"{bitcell_metrics['high_vt_hold_energy_aj']['ss_1V']['delta_percent']:+.1f}%", f"{percent_delta(bitcell_metrics['baseline_read_snm_mv']['ss_1V'], bitcell_metrics['high_vt_read_snm_mv']['ss_1V']):+.1f}%", f"{percent_delta(bitcell_metrics['baseline_hold_snm_mv']['ss_1V'], bitcell_metrics['high_vt_hold_snm_mv']['ss_1V']):+.1f}%"],
+    ]
+    negative_bl_rows = [
+        [
+            corner_label(corner),
+            f"{entry['baseline_value']:.1f}",
+            f"{entry['optimized_value']:.1f}",
+            f"{entry['delta_percent']:+.1f}%",
+        ]
+        for corner, entry in bitcell_metrics["negative_bl_write_delay_ps"].items()
+    ]
+    wl_rows = [
+        [
+            corner_label(corner),
+            f"{bitcell_metrics['wl_underdrive_read_snm_mv'][corner]:.1f}" if corner in bitcell_metrics["wl_underdrive_read_snm_mv"] else "NA",
+            f"{entry['delta_percent']:+.1f}%",
+            f"{entry['optimized_value']:.3f}",
+        ]
+        for corner, entry in bitcell_metrics["wl_underdrive_read_disturb_mv"].items()
+    ]
+    lines = [
+        "# Bitcell Summary",
+        "",
+        "Generated by `scripts/plot_bitcell_report_figures.py`. This file is the report-facing bitcell source of truth built directly from the raw Cadence CSVs under `sim_data/`.",
+        "",
+        "## Baseline Stability Snapshot",
+        "",
+        markdown_table(["Metric", "FF 1.2 V (mV)", "TT 1.0 V (mV)", "SS 1.0 V (mV)"], baseline_rows),
+        "",
+        "## High-Vt Tradeoff",
+        "",
+        markdown_table(["Corner", "Hold-window energy delta", "Read SNM delta", "Hold SNM delta"], high_vt_rows),
+        "",
+        "## Negative-Bitline Write Delay",
+        "",
+        markdown_table(["Corner", "Baseline (ps)", "Neg BL (ps)", "Delta"], negative_bl_rows),
+        "",
+        "## Wordline-Underdrive Read Stability",
+        "",
+        markdown_table(["Corner", "Read SNM (mV)", "Read disturb delta", "Optimized read disturb (mV)"], wl_rows),
+        "",
+        "## Evidence Notes",
+        "",
+        "- WNM follows the current diagonal-corner project convention used in the write butterfly plots.",
+        "- The wordline-underdrive read-disturb metric is a pulse-window transient metric, not a universal stored-node guarantee.",
+        f"- The machine-readable source-of-truth table for all rows is `{(output_root_relative(path.parent / 'bitcell_summary.csv'))}`.",
+        "",
+        "## Row Inventory",
+        "",
+        f"Total rows: {len(summary_rows)}",
+    ]
+    path.write_text("\n".join(lines) + "\n")
+
+
+def markdown_table(headers: list[str], rows: list[list[str]]) -> str:
+    header_line = "| " + " | ".join(headers) + " |"
+    separator_line = "| " + " | ".join(["---"] * len(headers)) + " |"
+    body_lines = ["| " + " | ".join(row) + " |" for row in rows]
+    return "\n".join([header_line, separator_line, *body_lines])
+
+
+def output_root_relative(path: Path) -> str:
+    return str(path.relative_to(REPO_ROOT))
+
+
+def plot_bitcell_results_summary(base_path: Path, bitcell_metrics: dict[str, Any]) -> GuideEntry:
+    configure_matplotlib()
+    fig, (ax_left, ax_right) = plt.subplots(
+        1,
+        2,
+        figsize=SUMMARY_FIGSIZE,
+        gridspec_kw={"width_ratios": [1.05, 1.20]},
+    )
+    ax_left.axis("off")
+    ax_right.axis("off")
+
+    baseline_table = [
+        ["Hold SNM", f"{bitcell_metrics['baseline_hold_snm_mv']['ff']:.1f}", f"{bitcell_metrics['baseline_hold_snm_mv']['tt']:.1f}", f"{bitcell_metrics['baseline_hold_snm_mv']['ss_1V']:.1f}"],
+        ["Read SNM", f"{bitcell_metrics['baseline_read_snm_mv']['ff']:.1f}", f"{bitcell_metrics['baseline_read_snm_mv']['tt']:.1f}", f"{bitcell_metrics['baseline_read_snm_mv']['ss_1V']:.1f}"],
+        ["Write NM", f"{bitcell_metrics['baseline_write_nm_mv']['ff']:.1f}", f"{bitcell_metrics['baseline_write_nm_mv']['tt']:.1f}", f"{bitcell_metrics['baseline_write_nm_mv']['ss_1V']:.1f}"],
+    ]
+    baseline_table_artist = ax_left.table(
+        cellText=baseline_table,
+        colLabels=["Metric", "FF", "TT", "SS"],
+        loc="center",
+        cellLoc="center",
+    )
+    baseline_table_artist.auto_set_font_size(False)
+    baseline_table_artist.set_fontsize(8.7)
+    baseline_table_artist.scale(1.1, 1.55)
+    for (row, col), cell in baseline_table_artist.get_celld().items():
+        if row == 0:
+            cell.set_facecolor("#dbe6f4")
+            cell.set_text_props(weight="bold")
+        if col == 0 and row > 0:
+            cell.set_facecolor("#f2f4f7")
+            cell.set_text_props(weight="bold")
+    ax_left.set_title("Baseline Stability Snapshot", fontsize=10.4, pad=8.0)
+
+    optimization_table = [
+        [
+            "High Vt",
+            f"Hold energy {bitcell_metrics['high_vt_hold_energy_aj']['tt']['delta_percent']:+.1f}%\nRead SNM {percent_delta(bitcell_metrics['baseline_read_snm_mv']['tt'], bitcell_metrics['high_vt_read_snm_mv']['tt']):+.1f}%",
+            "Leakage-oriented tradeoff",
+        ],
+        [
+            "Negative BL",
+            f"Write delay {bitcell_metrics['negative_bl_write_delay_ps']['tt']['delta_percent']:+.1f}%",
+            "Primary writability win",
+        ],
+        [
+            "WL underdrive",
+            f"Read SNM {percent_delta(bitcell_metrics['baseline_read_snm_mv']['tt'], bitcell_metrics['wl_underdrive_read_snm_mv']['tt']):+.1f}%\nRead disturb {bitcell_metrics['wl_underdrive_read_disturb_mv']['tt']['delta_percent']:+.1f}%*",
+            "Read-stability gain",
+        ],
+    ]
+    optimization_table_artist = ax_right.table(
+        cellText=optimization_table,
+        colLabels=["Optimization", "TT headline", "Reading"],
+        loc="center",
+        cellLoc="left",
+    )
+    optimization_table_artist.auto_set_font_size(False)
+    optimization_table_artist.set_fontsize(8.4)
+    optimization_table_artist.scale(1.2, 1.72)
+    for (row, col), cell in optimization_table_artist.get_celld().items():
+        if row == 0:
+            cell.set_facecolor("#e9f3ea")
+            cell.set_text_props(weight="bold")
+        if col == 0 and row > 0:
+            cell.set_facecolor("#f2f4f7")
+            cell.set_text_props(weight="bold")
+    ax_right.set_title("Optimization Headlines", fontsize=10.4, pad=8.0)
+    ax_right.text(
+        0.0,
+        0.04,
+        "* Read-disturb is reported as a pulse-window transient metric.",
+        transform=ax_right.transAxes,
+        ha="left",
+        va="bottom",
+        fontsize=8.0,
+    )
+
+    fig.tight_layout()
+    save_figure(fig, base_path)
+    plt.close(fig)
+    return GuideEntry(
+        relative_png=base_path.with_suffix(".png").relative_to(OUTPUT_ROOT),
+        description="Compact report-body summary that pairs the baseline stability snapshot with one TT-nominal headline result for each optimization path.",
+        source_files=[
+            SIM_DATA_ROOT / "baseline" / "hold" / "holdSNM_ff.csv",
+            SIM_DATA_ROOT / "baseline" / "read" / "ReadSNM_tt.csv",
+            SIM_DATA_ROOT / "baseline" / "write" / "writenm_ss.csv",
+            SIM_DATA_ROOT / "optimized" / "high_vt" / "trans_vt_opt_tt.csv",
+            SIM_DATA_ROOT / "optimized" / "negative_bitline" / "trans_negBLopt_tt.csv",
+            SIM_DATA_ROOT / "optimized" / "wordline_underdrive" / "read_snm_opt_tt.csv",
+        ],
+        processing_steps=[
+            "Loaded the same Cadence-derived butterfly and transient metrics used by the detailed appendix figures.",
+            "Condensed the baseline FF, TT, and SS stability values into a single table-style panel.",
+            "Attached one TT nominal headline improvement or tradeoff for High Vt, Negative BL, and WL underdrive.",
+        ],
+        takeaway="Gives the report body one compact, traceable bitcell summary without replacing the detailed figure bank.",
+        caveats=[
+            "The write-noise-margin entries use the current diagonal-corner project convention.",
+            "The WL-underdrive disturb headline is a pulse-window transient metric rather than a universal retention guarantee.",
+        ],
+    )
+
+
+def plot_high_vt_tradeoff_summary(base_path: Path, bitcell_metrics: dict[str, Any]) -> GuideEntry:
+    configure_matplotlib()
+    corners = ["ff", "tt", "ss_1V"]
+    labels = [corner_label(corner).replace(" ", "\n", 1) for corner in corners]
+    energy_delta_pct = np.asarray(
+        [bitcell_metrics["high_vt_hold_energy_aj"][corner]["delta_percent"] for corner in corners],
+        dtype=float,
+    )
+    read_snm_delta_pct = np.asarray(
+        [
+            percent_delta(
+                bitcell_metrics["baseline_read_snm_mv"][corner],
+                bitcell_metrics["high_vt_read_snm_mv"][corner],
+            )
+            for corner in corners
+        ],
+        dtype=float,
+    )
+    x = np.arange(len(labels), dtype=float)
+
+    fig, axes = plt.subplots(1, 2, figsize=TRADEOFF_FIGSIZE, sharex=False)
+    left_ax, right_ax = axes
+
+    left_bars = left_ax.bar(x, energy_delta_pct, color=HIGH_VT_COLOR, width=0.58)
+    left_ax.axhline(0.0, color="0.35", lw=0.9)
+    left_ax.set_xticks(x, labels)
+    left_ax.set_ylabel("Delta vs baseline (%)")
+    left_ax.set_title("Hold-window energy")
+    format_bar_axis(left_ax)
+    annotate_signed_bars(left_ax, left_bars)
+
+    right_bars = right_ax.bar(x, read_snm_delta_pct, color=BASELINE_COLOR, width=0.58)
+    right_ax.axhline(0.0, color="0.35", lw=0.9)
+    right_ax.set_xticks(x, labels)
+    right_ax.set_title("Read SNM")
+    format_bar_axis(right_ax)
+    annotate_signed_bars(right_ax, right_bars)
+
+    y_min = min(float(np.min(energy_delta_pct)), float(np.min(read_snm_delta_pct)), 0.0)
+    y_max = max(float(np.max(energy_delta_pct)), float(np.max(read_snm_delta_pct)), 0.0)
+    pad = max(3.0, 0.18 * max(abs(y_min), abs(y_max), 1.0))
+    for axis in axes:
+        axis.set_ylim(y_min - pad, y_max + pad)
+
+    fig.suptitle("High-Vt Tradeoff Summary", fontsize=10.8, y=1.02)
+    fig.tight_layout()
+    save_figure(fig, base_path)
+    plt.close(fig)
+    return GuideEntry(
+        relative_png=base_path.with_suffix(".png").relative_to(OUTPUT_ROOT),
+        description="Side-by-side percent-delta view of the High-Vt hold-window energy change and read-SNM penalty across the three shared SNM corners.",
+        source_files=[
+            SIM_DATA_ROOT / "baseline" / "rwtrans" / "rw_ff.csv",
+            SIM_DATA_ROOT / "baseline" / "rwtrans" / "rw_tt.csv",
+            SIM_DATA_ROOT / "baseline" / "rwtrans" / "rw_ss_1.csv",
+            SIM_DATA_ROOT / "optimized" / "high_vt" / "trans_vt_opt_ff.csv",
+            SIM_DATA_ROOT / "optimized" / "high_vt" / "trans_vt_opt_tt.csv",
+            SIM_DATA_ROOT / "optimized" / "high_vt" / "trans_vt_opt_ss_1V.csv",
+            SIM_DATA_ROOT / "optimized" / "high_vt" / "opt_Vt_readSNM_ff.csv",
+            SIM_DATA_ROOT / "optimized" / "high_vt" / "opt_Vt_readSNM_tt.csv",
+            SIM_DATA_ROOT / "optimized" / "high_vt" / "opt_Vt_readSNM_ss.csv",
+        ],
+        processing_steps=[
+            "Integrated the 6 to 9 ns hold-window supply energy from the baseline and High-Vt transient traces.",
+            "Computed read-SNM deltas from the limiting butterfly-eye extraction at FF, TT, and SS 1.0 V.",
+            "Plotted percent change versus baseline on matched vertical axes so the energy benefit and SNM cost can be read together.",
+        ],
+        takeaway="Summarizes the core High-Vt tradeoff: leakage-oriented hold-window energy improvement versus reduced read SNM.",
+        caveats=[
+            "The SS 0.8 V energy case is preserved in the summary table but omitted here so the corner set matches the three available read-SNM corners.",
+        ],
+    )
 
 
 def configure_matplotlib() -> None:
@@ -1015,6 +1724,28 @@ def annotate_bars(ax: plt.Axes, bars, value_formatter: str, y_max: float) -> Non
             value_formatter.format(value),
             ha="center",
             va="bottom",
+            fontsize=8.5,
+        )
+
+
+def annotate_signed_bars(ax: plt.Axes, bars) -> None:
+    ylim = ax.get_ylim()
+    span = ylim[1] - ylim[0]
+    offset = 0.035 * span
+    for bar in bars:
+        value = float(bar.get_height())
+        if value >= 0.0:
+            y_text = value + offset
+            va = "bottom"
+        else:
+            y_text = value - offset
+            va = "top"
+        ax.text(
+            float(bar.get_x() + bar.get_width() / 2.0),
+            y_text,
+            f"{value:+.1f}%",
+            ha="center",
+            va=va,
             fontsize=8.5,
         )
 

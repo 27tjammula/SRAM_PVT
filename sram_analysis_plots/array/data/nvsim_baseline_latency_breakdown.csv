@@ -1,0 +1,7 @@
+access,component,latency_ns,share_percent,aggregation_rule,evidence_type
+Read,Row decode,0.542500,61.502567,Predecoder + row decoder,Estimated by NVSim
+Read,Bitline path,0.247180,28.022497,Read: bitline + sense amp; Write: charge latency,Estimated by NVSim
+Read,Other,0.092397,10.474936,Residual to total latency,Estimated by NVSim
+Write,Row decode,0.542500,61.502567,Predecoder + row decoder,Estimated by NVSim
+Write,Bitline path,0.199124,22.574446,Read: bitline + sense amp; Write: charge latency,Estimated by NVSim
+Write,Other,0.140453,15.922986,Residual to total latency,Estimated by NVSim

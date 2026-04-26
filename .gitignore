@@ -60,3 +60,8 @@ __pycache__/
 .env
 .idea/
 .vscode/
+
+#----------------------------------------------------
+# Local TeX Live (TinyTeX) install — project-local pdflatex
+#----------------------------------------------------
+.tex/

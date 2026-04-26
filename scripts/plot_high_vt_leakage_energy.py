@@ -55,6 +55,11 @@ HIGH_VT_COLOR = "#d95f02"
 DELTA_BETTER_COLOR = "#2f7f4f"
 DELTA_WORSE_COLOR = "#b23a48"
 
+FIGSIZE = (8.2, 4.8)
+BAR_WIDTH = 0.34
+HEADROOM_FACTOR = 1.30
+DPI = 300
+
 
 @dataclass(frozen=True)
 class EnergyPoint:
@@ -118,6 +123,7 @@ def main() -> None:
 
     print(csv_path.relative_to(REPO_ROOT))
     print(fig_path.relative_to(REPO_ROOT))
+    print(fig_path.with_suffix(".pdf").relative_to(REPO_ROOT))
 
 
 def integrate_case(csv_path: Path, t_start_ns: float, t_end_ns: float) -> EnergyPoint:
@@ -195,60 +201,81 @@ def plot_energy_bars(
     labels = [str(row["label"]) for row in rows]
     baseline_aj = [row["baseline"].energy_j * 1e18 for row in rows]  # type: ignore[union-attr]
     high_vt_aj = [row["high_vt"].energy_j * 1e18 for row in rows]  # type: ignore[union-attr]
+    plot_high_vt_grouped_bars(
+        output_path=output_path,
+        labels=labels,
+        baseline_values=baseline_aj,
+        high_vt_values=high_vt_aj,
+        y_label="Consumed supply energy (aJ)",
+        higher_is_better=False,
+    )
 
-    x = np.arange(len(rows), dtype=float)
-    width = 0.34
-    y_max = max(max(baseline_aj), max(high_vt_aj))
 
-    fig, ax = plt.subplots(figsize=(8.2, 4.8))
-    baseline_pos = x - width / 2
-    high_vt_pos = x + width / 2
+def plot_high_vt_grouped_bars(
+    output_path: Path,
+    labels: list[str],
+    baseline_values: list[float],
+    high_vt_values: list[float],
+    *,
+    y_label: str,
+    higher_is_better: bool,
+    figsize: tuple[float, float] = FIGSIZE,
+    bar_width: float = BAR_WIDTH,
+    headroom_factor: float = HEADROOM_FACTOR,
+    dpi: int = DPI,
+) -> None:
+    """Render the canonical baseline vs High-Vt grouped-bar figure.
 
-    ax.bar(baseline_pos, baseline_aj, width, label="Baseline", color=BASELINE_COLOR)
-    ax.bar(high_vt_pos, high_vt_aj, width, label="High-Vt", color=HIGH_VT_COLOR, alpha=0.90)
+    Shared by the hold-window energy and read-SNM per-corner charts so the
+    two figures in the report's High-Vt section are visually identical.
+    """
+    x = np.arange(len(labels), dtype=float)
+    y_max = max(max(baseline_values), max(high_vt_values))
 
-    ax.set_title(f"Hold-Window Supply Energy by Corner ({t_start_ns:g}-{t_end_ns:g} ns)")
-    ax.set_ylabel("Consumed supply energy (aJ)")
+    fig, ax = plt.subplots(figsize=figsize)
+    baseline_pos = x - bar_width / 2
+    high_vt_pos = x + bar_width / 2
+
+    ax.bar(baseline_pos, baseline_values, bar_width, label="Baseline", color=BASELINE_COLOR)
+    ax.bar(high_vt_pos, high_vt_values, bar_width, label="High-Vt", color=HIGH_VT_COLOR, alpha=0.90)
+
+    ax.set_ylabel(y_label)
     ax.set_xticks(x, labels)
-    ax.grid(True, axis="y", color="0.88", linewidth=0.8)
-    ax.set_axisbelow(True)
     ax.legend(frameon=False, ncols=2, loc="upper right")
-    ax.set_ylim(0.0, 1.18 * y_max)
+    ax.set_ylim(0.0, headroom_factor * y_max)
+    apply_paper_style(ax)
 
-    annotate_bar_values(ax, baseline_pos, baseline_aj, y_max)
-    annotate_bar_values(ax, high_vt_pos, high_vt_aj, y_max)
+    annotate_bar_values(ax, baseline_pos, baseline_values, y_max)
+    annotate_bar_values(ax, high_vt_pos, high_vt_values, y_max)
 
-    for index, row in enumerate(rows):
-        baseline: EnergyPoint = row["baseline"]  # type: ignore[assignment]
-        high_vt: EnergyPoint = row["high_vt"]  # type: ignore[assignment]
-        delta_pct = 100.0 * (high_vt.energy_j - baseline.energy_j) / baseline.energy_j
-        better = delta_pct < 0.0
+    for index, (baseline_value, high_vt_value) in enumerate(zip(baseline_values, high_vt_values)):
+        delta_pct = 100.0 * (high_vt_value - baseline_value) / baseline_value
+        is_better = (delta_pct > 0.0) if higher_is_better else (delta_pct < 0.0)
         ax.text(
             x[index],
-            max(baseline_aj[index], high_vt_aj[index]) + 0.11 * y_max,
+            max(baseline_value, high_vt_value) + 0.11 * y_max,
             f"{delta_pct:+.1f}%",
             ha="center",
             va="bottom",
             fontsize=9,
-            color=DELTA_BETTER_COLOR if better else DELTA_WORSE_COLOR,
+            color=DELTA_BETTER_COLOR if is_better else DELTA_WORSE_COLOR,
             fontweight="bold",
         )
 
-    ax.text(
-        0.015,
-        0.985,
-        rf"$E_{{\mathrm{{hold}}}} = -\overline{{VDD}}\int I_{{VDD}}(t)\,dt$ over the {t_start_ns:g}-{t_end_ns:g} ns hold window",
-        transform=ax.transAxes,
-        ha="left",
-        va="top",
-        fontsize=8.5,
-        color="0.30",
-        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "edgecolor": "0.85", "alpha": 0.92},
-    )
-
     fig.tight_layout()
-    fig.savefig(output_path, dpi=220)
+    png_path = output_path.with_suffix(".png")
+    pdf_path = output_path.with_suffix(".pdf")
+    fig.savefig(png_path, dpi=dpi)
+    fig.savefig(pdf_path)
     plt.close(fig)
+
+
+def apply_paper_style(ax: plt.Axes) -> None:
+    """Match the project paper-style rules: no grid, no minor ticks, inward ticks all sides, no title."""
+    ax.tick_params(direction="in", top=True, right=True, length=4.0, width=0.8)
+    ax.minorticks_off()
+    for spine in ax.spines.values():
+        spine.set_linewidth(0.8)
 
 
 def annotate_bar_values(ax: plt.Axes, x: np.ndarray, values: list[float], y_max: float) -> None:

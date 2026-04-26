@@ -1,4 +1,4 @@
-User-defined configuration file (C:\Users\taara\UPENN JR SPR\ESE 5760\SRAM_PVT\sram_analysis_plots\array\logs\configs\baseline.cfg) is loaded
+User-defined configuration file (/Users/krishnachemudupati/School/ESE5760/SRAM_PVT/sram_analysis_plots/array/logs/configs/baseline.cfg) is loaded
 
 Memory Cell: SRAM
 Cell Area (F^2)    : 146.000 (14.600Fx10.000F)
