@@ -149,7 +149,7 @@ def plot_wnm_csv(
     sim_data_root: Path,
 ) -> float:
     curve_left, curve_right = wnm_curves_from_csv(csv_path, header, data)
-    fit = lower_half_square_between_curves(curve_left, curve_right)
+    fit = diagonal_square_between_curves(curve_left, curve_right)
     plot_butterfly(curve_left, curve_right, fit, "WNM", csv_path, output_path, sim_data_root)
     return 0.0 if fit is None else fit.side
 
@@ -367,6 +367,97 @@ def fit_square_in_interval(
         refined = coarse
 
     return refine_square_placement(interp_a, interp_b, interval_lo, interval_hi, refined)
+
+
+def diagonal_square_between_curves(
+    curve_left: Curve2D,
+    curve_right: Curve2D,
+) -> SquareFit | None:
+    """Largest axis-aligned square whose lower-left and upper-right corners
+    both lie on V1 = V2, fitting inside the eye between curve_left (left
+    boundary, x = curve_left(y)) and curve_right (right boundary)."""
+    _, _, interp_left_x = curve_as_x_of_y(curve_left)
+    _, _, interp_right_x = curve_as_x_of_y(curve_right)
+
+    y_lo = max(float(np.min(curve_left.y)), float(np.min(curve_right.y)))
+    y_hi = min(float(np.max(curve_left.y)), float(np.max(curve_right.y)))
+    if y_hi - y_lo <= SIDE_TOL:
+        return None
+
+    grid_n = 4001
+    y_grid = np.linspace(y_lo, y_hi, grid_n)
+    x_l = interp_left_x(y_grid)
+    x_r = interp_right_x(y_grid)
+    if np.any(np.isnan(x_l)) or np.any(np.isnan(x_r)):
+        finite = ~(np.isnan(x_l) | np.isnan(x_r))
+        if not np.any(finite):
+            return None
+        y_grid = y_grid[finite]
+        x_l = x_l[finite]
+        x_r = x_r[finite]
+
+    best_side = 0.0
+    best_anchor: float | None = None
+    eps = max(SIDE_TOL, 1e-7)
+
+    for i, a in enumerate(y_grid):
+        s_max = float(y_grid[-1] - a)
+        if s_max <= SIDE_TOL:
+            continue
+        s_lo = 0.0
+        s_hi = s_max
+        for _ in range(48):
+            s = 0.5 * (s_lo + s_hi)
+            j_hi = int(np.searchsorted(y_grid, a + s, side="right") - 1)
+            if j_hi <= i:
+                s_hi = s
+                continue
+            max_xl = float(np.max(x_l[i : j_hi + 1]))
+            min_xr = float(np.min(x_r[i : j_hi + 1]))
+            if max_xl <= a + eps and min_xr >= a + s - eps:
+                s_lo = s
+            else:
+                s_hi = s
+        if s_lo > best_side:
+            best_side = s_lo
+            best_anchor = float(a)
+
+    if best_anchor is None or best_side <= SIDE_TOL:
+        return None
+
+    side = best_side
+    x_left = best_anchor
+    y_bottom = best_anchor
+    corners = np.asarray(
+        [
+            [x_left, y_bottom],
+            [x_left + side, y_bottom],
+            [x_left + side, y_bottom + side],
+            [x_left, y_bottom + side],
+        ],
+        dtype=float,
+    )
+    contacts = np.asarray(
+        [[x_left, y_bottom], [x_left + side, y_bottom + side]],
+        dtype=float,
+    )
+    return SquareFit(
+        side=side,
+        x_left=x_left,
+        y_bottom=y_bottom,
+        square_xy=corners,
+        contacts_xy=contacts,
+    )
+
+
+def curve_as_x_of_y(curve: Curve2D) -> tuple[np.ndarray, np.ndarray, PchipInterpolator]:
+    order = np.argsort(curve.y)
+    y_sorted = curve.y[order]
+    x_sorted = curve.x[order]
+    y_unique, x_unique = collapse_duplicate_x(y_sorted, x_sorted)
+    if len(y_unique) < 2:
+        raise ValueError("Need at least two unique y-points to invert the butterfly curve")
+    return y_unique, x_unique, PchipInterpolator(y_unique, x_unique, extrapolate=False)
 
 
 def lower_half_square_between_curves(curve_a: Curve2D, curve_b: Curve2D) -> SquareFit | None:
